@@ -212,17 +212,17 @@ cd Data/Errors/acme_errors.csv
 Create `Configuration/newpartner.yaml`:
 
 ```yaml
-partner_code: NEWP 
+partner_code: NEWP
 file_path: Data/Raw/newpartner.csv
 delimiter: ","
 
 column_mapping:
-  member_id: external_id
+  subscriber_id: external_id
   first_name: first_name
   last_name: last_name
-  birth_date: dob
+  date_of_birth: dob
   email: email
-  phone_number: phone
+  phone: phone
 ```
 
 ### Step 2: Add Data File
