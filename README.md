@@ -4,7 +4,7 @@ A **configuration-driven ETL pipeline** for ingesting, transforming, and standar
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Key Features](#key-features)
@@ -46,10 +46,10 @@ This pipeline unifies all partner data into a single standardized dataset while 
 - **Automated CI/CD**: GitHub Actions workflow ensures code quality on every commit
 
 ### Data Transformations
-- **Names** → Title Case (`john` → `John`)
-- **Emails** → Lowercase (`JOHN@EMAIL.COM` → `john@email.com`)
-- **Phone Numbers** → `XXX-XXX-XXXX` format with validation
-- **Dates** → ISO-8601 format (`YYYY-MM-DD`) with validation
+- **Names** - Title Case (`john` → `John`)
+- **Emails** - Lowercase (`JOHN@EMAIL.COM` → `john@email.com`)
+- **Phone Numbers** - `XXX-XXX-XXXX` format with validation
+- **Dates** - ISO-8601 format (`YYYY-MM-DD`) with validation
 
 ### Data Quality Features
 - **External ID Validation**: Ensures all records have valid identifiers
@@ -95,14 +95,14 @@ python Source/main.py
 
 ```
 Processing file: Data/Raw/acme.txt
-Total records received: 4
+Total records received: 5
 Successfully processed records: 4
-Records sent to error file: 0
+Records sent to error file: 3
 
 Processing file: Data/Raw/bettercare.csv
 Total records received: 4
 Successfully processed records: 4
-Records sent to error file: 0
+Records sent to error file: 2
 ```
 
 ---
@@ -118,10 +118,13 @@ Healthcare Eligibility Pipeline/
 │   ├── acme_health.yaml                # Acme Health config
 │   └── better_care.yaml                # Better Care config
 ├── Data/
-│   ├── Errors/                         
-│   │                                   # Invalid records
-│   ├── Processed/                      
-│   │                                   # Standardized output
+│   ├── Errors/                         # Invalid records
+│   |   ├── acme_errors.csv
+│   |   └── bettercare_errors.csv                                                            
+│   ├── Processed/                      # Standardized output
+│   |   ├── acme_processed.csv
+│   |   └── bettercare_processed.csv
+│   |   └── unified_eligibility.csv                      
 │   └── Raw/                            # Source files
 │       ├── acme.txt
 │       └── bettercare.csv
@@ -168,7 +171,7 @@ column_mapping:
 | `partner_code` | Unique partner identifier | `ACME` |
 | `file_path` | Path to input file | `Data/Raw/acme.txt` |
 | `delimiter` | File delimiter character | `\|`, `,`, `\t` |
-| `column_mapping` | Source → Target column mapping | `MBI: external_id` |
+| `column_mapping` | Source - Target column mapping | `MBI: external_id` |
 
 ---
 
@@ -194,13 +197,10 @@ python Source/main.py
 
 ```bash
 # View unified output
-cat Data/Processed/unified_eligibility.csv
+cd Data/Processed/unified_eligibility.csv
 
 # View error records
-cat Data/Errors/acme_errors.csv
-
-# Check for invalid data annotations
-grep "Invalid" Data/Processed/unified_eligibility.csv
+cd Data/Errors/acme_errors.csv
 ```
 
 ---
@@ -227,7 +227,7 @@ column_mapping:
 
 ### Step 2: Add Data File
 
-Place partner's file in `Data/Raw/newpartner.csv`
+Place new partner's file in `Data/Raw/newpartner.csv`
 
 ### Step 3: Run Pipeline
 
@@ -235,7 +235,7 @@ Place partner's file in `Data/Raw/newpartner.csv`
 python Source/main.py
 ```
 
-**Done** The pipeline automatically:
+**Done** the pipeline automatically:
 - Discovers the new configuration
 - Reads the file with specified delimiter
 - Maps columns using your configuration
@@ -257,6 +257,16 @@ external_id,first_name,last_name,dob,email,phone,partner_code
 BC-001,Alice,Johnson,1965-08-10,alice.j@test.com,555-222-3333,BETTERCARE
 ```
 
+### Error Files (Per Partner)
+
+**Example**: `Data/Errors/acme_errors.csv`
+
+Contains records with data quality issues:
+```csv
+external_id,first_name,last_name,dob,email,phone,partner_code,error_reason
+,Racey,Minch,1999-09-21,racey@email.com,789-789-7412,,Missing External ID
+7878787872C,Mace,Jace,1985-08-22,mace@email.com,7897989899898*(Invalid Phone Number),ACME,Invalid Phone Number
+```
 ### Processed Files (Per Partner)
 
 **Example**: `Data/Processed/acme_processed.csv`
@@ -271,18 +281,6 @@ Contains standardized records with:
 external_id,first_name,last_name,dob,email,phone,partner_code
 7878787872C,Mace,Jace,1985-08-22,mace@email.com,7897989899898*(Invalid Phone Number),ACME
 ```
-
-### Error Files (Per Partner)
-
-**Example**: `Data/Errors/acme_errors.csv`
-
-Contains records with data quality issues:
-```csv
-external_id,first_name,last_name,dob,email,phone,partner_code,error_reason
-,Racey,Minch,1999-09-21,racey@email.com,789-789-7412,,Missing External ID
-7878787872C,Mace,Jace,1985-08-22,mace@email.com,7897989899898*(Invalid Phone Number),ACME,Invalid Phone Number
-```
-
 ---
 
 ## Data Validation
@@ -324,8 +322,8 @@ external_id,first_name,last_name,dob,email,phone,partner_code,error_reason
 This project uses **GitHub Actions** for automated testing on every commit.
 
 ### Workflow Triggers
-- Push to `main` or `master` branch
-- Pull requests to `main` or `master` branch
+- Push to `main` branch
+- Pull requests to `main` branch
 
 ### What Gets Tested
 1. Code checkout
@@ -380,10 +378,11 @@ pip install -r requirements.txt
 **Solution**:
 ```bash
 # Verify file exists
-ls -la Data/Raw/
+ls Data/Raw/
 
 # Check path in configuration file
-cat Configuration/your_partner.yaml
+# Windows Command Prompt:
+type Configuration/your_partner.yaml
 ```
 
 ---
@@ -394,7 +393,8 @@ cat Configuration/your_partner.yaml
 **Solution**:
 ```bash
 # Check actual column names in file
-head -1 Data/Raw/your_file.csv
+# Windows PowerShell:
+Get-Content Data\Raw\your_file.csv -First 1
 
 ```
 ---
