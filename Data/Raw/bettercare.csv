@@ -1,5 +1,5 @@
 subscriber_id,first_name,last_name,date_of_birth,email,phone
 BC-001,alice,johnson,1965-08-10,alice.j@test.com,555-222-3333
-BC-002,charlie,brown,1972-03-25,charlie.b@test.com,5554445555898
-,eve,davis,1988-11-30,EVE@gmail.com,555-666-7777
-,frank,moore,1995-22-22,Frank@gmail.com,555-777-8888
+BC-002,Charlie,Brown,1972-03-25,charlie.b@test.com,5554445555
+BC-001,alice,johnson,1965-13-13,alice.j@test.com,555-222-3333
+BC-002,Charlie,Brown,1972-03-25,charlie.b@test.com,5554445555123
