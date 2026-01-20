@@ -1,0 +1,11 @@
+partner_code: ACME
+file_path: Data/Raw/acme.txt
+delimiter: "|"
+
+column_mapping:
+  MBI: external_id
+  FNAME: first_name
+  LNAME: last_name
+  DOB: dob
+  EMAIL: email
+  PHONE: phone

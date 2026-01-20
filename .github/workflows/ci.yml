@@ -1,0 +1,150 @@
+# Healthcare Eligibility Pipeline - CI/CD Workflow
+# Automatically tests the pipeline on every push to GitHub
+
+name: Pipeline CI
+
+# Trigger: Run on every push and pull request
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-pipeline:
+    name: Test Healthcare Pipeline
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Step 1: Download your code from GitHub
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    # Step 2: Install Python 3.11
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    # Step 4: Verify raw data files exist
+    - name: Check input files
+      run: |
+        echo "Checking for required input files..."
+        if [ ! -f "Data/Raw/acme.txt" ]; then
+          echo "❌ Error: acme.txt not found"
+          exit 1
+        fi
+        if [ ! -f "Data/Raw/bettercare.csv" ]; then
+          echo "❌ Error: bettercare.csv not found"
+          exit 1
+        fi
+        echo "✅ All input files present"
+    
+    # Step 5: Verify configuration files exist
+    - name: Check configuration files
+      run: |
+        echo "Checking for configuration files..."
+        if [ ! -f "Configuration/acme_health.yaml" ]; then
+          echo "❌ Error: acme_health.yaml not found"
+          exit 1
+        fi
+        if [ ! -f "Configuration/better_care.yaml" ]; then
+          echo "❌ Error: better_care.yaml not found"
+          exit 1
+        fi
+        echo "✅ All configuration files present"
+    
+    # Step 6: Run the pipeline
+    - name: Run pipeline
+      run: |
+        echo "Running Healthcare Eligibility Pipeline..."
+        python Source/main.py
+    
+    # Step 7: Verify output files were created
+    - name: Verify outputs
+      run: |
+        echo "Verifying output files..."
+        
+        # Check processed files
+        if [ ! -f "Data/Processed/acme_processed.csv" ]; then
+          echo "❌ Error: acme_processed.csv not created"
+          exit 1
+        fi
+        if [ ! -f "Data/Processed/bettercare_processed.csv" ]; then
+          echo "❌ Error: bettercare_processed.csv not created"
+          exit 1
+        fi
+        if [ ! -f "Data/Processed/unified_eligibility.csv" ]; then
+          echo "❌ Error: unified_eligibility.csv not created"
+          exit 1
+        fi
+        
+        # Check error files
+        if [ ! -f "Data/Errors/acme_errors.csv" ]; then
+          echo "❌ Error: acme_errors.csv not created"
+          exit 1
+        fi
+        if [ ! -f "Data/Errors/bettercare_errors.csv" ]; then
+          echo "❌ Error: bettercare_errors.csv not created"
+          exit 1
+        fi
+        
+        echo "✅ All output files created successfully"
+    
+    # Step 8: Validate output schema
+    - name: Validate output schema
+      run: |
+        echo "Validating output file schema..."
+        python -c "
+        
+        import pandas as pd
+
+        # Expected schema (7 columns)
+        expected_cols = ['external_id', 'first_name', 'last_name', 'dob', 'email', 'phone', 'partner_code']
+
+        # Check unified file
+        df = pd.read_csv('Data/Processed/unified_eligibility.csv')
+        actual_cols = list(df.columns)
+
+        if actual_cols != expected_cols:
+            print(f'❌ Schema mismatch!')
+            print(f'Expected: {expected_cols}')
+            print(f'Got: {actual_cols}')
+            exit(1)
+
+        print(f'✅ Schema validation passed')
+        print(f'✅ Total records in unified file: {len(df)}')
+        "
+            
+            # Step 9: Check for annotations
+            - name: Validate annotations
+            run: |
+                echo "Checking for invalid data annotations..."
+                python -c "
+        import pandas as pd
+
+        df = pd.read_csv('Data/Processed/unified_eligibility.csv')
+
+        # Count annotations
+        phone_invalid = df['phone'].str.contains('\*\(Invalid Phone Number\)', na=False).sum()
+        dob_invalid = df['dob'].str.contains('\*\(Invalid DOB\)', na=False).sum()
+
+        print(f'Phone annotations found: {phone_invalid}')
+        print(f'DOB annotations found: {dob_invalid}')
+
+        if phone_invalid > 0 or dob_invalid > 0:
+            print(f'✅ Annotation feature working correctly')
+        else:
+            print(f'ℹ️ No invalid data found in this run')
+        "
+            
+            # Step 10: Summary
+            - name: Pipeline test summary
+            run: |
+                echo "All checks completed successfully."

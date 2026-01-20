@@ -1,0 +1,11 @@
+partner_code: BETTERCARE
+file_path: Data/Raw/bettercare.csv
+delimiter: ","
+
+column_mapping:
+  subscriber_id: external_id
+  first_name: first_name
+  last_name: last_name
+  date_of_birth: dob
+  email: email
+  phone: phone
